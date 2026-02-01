@@ -9,6 +9,8 @@ import (
 
 type WsClient struct {
 	websocket *websocket.Conn
+
+	messages chan []byte
 	
 	done chan struct{}
 }
@@ -24,14 +26,25 @@ func receive() {
 			return
 		}
 
+		wsclient.messages <- msg
+	}
+}
+
+func parseAndPass() {
+	defer close(wsclient.done)
+	for {
+		msg := <- wsclient.messages
+
 		var update Answer
-		err = json.Unmarshal(msg, &update)
+		err := json.Unmarshal(msg, &update)
 		if err != nil {
 			log.Fatal("[JSON] Error parsing json", err)
 		}
 
 		log.Println(update.Symbol, update.Bids[0])
+
 	}
+
 }
 
 func main() {
@@ -40,11 +53,14 @@ func main() {
 		log.Fatal("[DIAL] Couldn't connect to Binance API:", err)
 	}
 	wsclient.websocket = ws
+	wsclient.messages = make(chan []byte)
 	defer wsclient.websocket.Close()
 
 	wsclient.done = make(chan struct{})
 
 	go receive()
+
+	go parseAndPass()
 
 	<-wsclient.done
 
