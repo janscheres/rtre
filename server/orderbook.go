@@ -18,7 +18,6 @@ type OrderBook struct {
 
 func (b *OrderBook) handleUpdate(update Answer) {
 	b.mu.Lock()
-	defer b.mu.Unlock()
 
 	for _, u := range update.Bids {
 		b.TotalBidVol-=b.Bids[u.Price]
@@ -43,6 +42,8 @@ func (b *OrderBook) handleUpdate(update Answer) {
 			b.TotalAskVol+=u.Quantity
 		}
 	}
+
+	b.mu.Unlock()
 
 	b.OBIChan <- b.GetOBI()
 }
