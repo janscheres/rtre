@@ -79,7 +79,7 @@ func (c *WsClient) parseAndPass() {
 
 		log.Println(update.Symbol, update.Bids[0])
 
-		go c.orderbook.handleUpdate(update)
+		c.orderbook.handleUpdate(update)
 	}
 
 }
