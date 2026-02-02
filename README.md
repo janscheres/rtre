@@ -1,13 +1,12 @@
-protoc --proto_path=. \
+`protoc --proto_path=. \
   --go_out=./server --go_opt=paths=source_relative \
   --go-grpc_out=./server --go-grpc_opt=paths=source_relative \
-  rtre.proto
+  rtre.proto`
 
-uv add grpcio grpcio-tools protobuf
+`uv add grpcio grpcio-tools protobuf`
 
-uv run python -m grpc_tools.protoc \
+`uv run python -m grpc_tools.protoc \
   -I. \
   --python_out=client \
   --grpc_python_out=client \
-  rtre.proto
-
+  rtre.proto`
