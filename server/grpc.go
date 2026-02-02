@@ -18,6 +18,8 @@ type riskServer struct {
 func (s *riskServer) StreamRisk(req *pb.RiskRequest, stream pb.RiskService_StreamRiskServer) error {
 	ctx := stream.Context()
 
+	log.Println("[gRPC] Connecting to new client")
+
 	for {
 		select {
 		case <-ctx.Done():
