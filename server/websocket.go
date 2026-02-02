@@ -92,11 +92,6 @@ func (c *WsClient) connect() {
 	c.websocket = ws
 	defer c.websocket.Close()
 	
-	c.orderbook = OrderBook{
-		Bids: make(map[float64]float64),	
-		Asks: make(map[float64]float64),
-	}
-
 	c.done = make(chan struct{})
 
 	go c.receive()
