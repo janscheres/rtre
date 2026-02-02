@@ -3,7 +3,7 @@ package main
 import (
 	"net"
 	"log"
-		"time"
+	"time"
 
 	"google.golang.org/grpc"
 	pb "github.com/janscheres/rtre/pb"
@@ -30,7 +30,7 @@ func (s *riskServer) StreamRisk(req *pb.RiskRequest, stream pb.RiskService_Strea
 			}
 
             err := stream.Send(&pb.RiskResponse{
-                Timestamp: int64(t.Unix()),
+                Timestamp: time.Now().UnixNano(),
 				Obi: obi,
 
             })
