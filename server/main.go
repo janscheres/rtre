@@ -76,8 +76,7 @@ func (c *WsClient) parseAndPass() {
 			log.Println("ERROR: [JSON] Error parsing json", err)
 		}
 
-		log.Println(update.Symbol, update.Bids[0])
-
+		//log.Println(update.Symbol, update.Bids[0])
 	}
 
 }
