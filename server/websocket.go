@@ -94,6 +94,8 @@ func (c *WsClient) connect() {
 	}
 	c.websocket = ws
 	defer c.websocket.Close()
+
+	log.Println("Successfully connected to upstream websocket")
 	
 	go c.receive()
 	go c.parseAndPass()

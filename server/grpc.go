@@ -53,6 +53,8 @@ func startgRPCServer(o *OrderBook) {
 	grpcServer := grpc.NewServer()
 	pb.RegisterRiskServiceServer(grpcServer, &riskServer{orderBook: o})
 
+	log.Println("Ready to start receiving on gRPC :50051")
+
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		log.Fatal("[gRPC] Failed to serve (not slay)", err)
