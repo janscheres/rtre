@@ -14,8 +14,6 @@ func main() {
 		},
 	}
 
-	riskService := pb.NewRiskServiceClient()
-
 	go startgRPCServer(&wsclient.orderbook)
 
 	for {
