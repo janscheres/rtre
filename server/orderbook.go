@@ -12,6 +12,8 @@ type OrderBook struct {
 
 	TotalBidVol float64
 	TotalAskVol float64
+
+	OBIChan chan float64
 }
 
 func (b *OrderBook) handleUpdate(update Answer) {
@@ -40,8 +42,9 @@ func (b *OrderBook) handleUpdate(update Answer) {
 			b.Asks[u.Price]=u.Quantity
 			b.TotalAskVol+=u.Quantity
 		}
-		
 	}
+
+	b.OBIChan <- b.GetOBI()
 }
 
 func (b *OrderBook) GetOBI() float64 {
