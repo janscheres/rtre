@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sync"
 )
 
@@ -45,7 +46,11 @@ func (b *OrderBook) handleUpdate(update Answer) {
 
 	b.mu.Unlock()
 
-	b.OBIChan <- b.GetOBI()
+	select {
+	case b.OBIChan <- b.GetOBI():
+	default:
+		log.Println("[go] DROPPING obi due to full channel :(")
+	}
 }
 
 func (b *OrderBook) GetOBI() float64 {
@@ -57,7 +62,7 @@ func (b *OrderBook) GetOBI() float64 {
 	total := bidVol+askVol
 
 	if total == 0 {
-		return -100
+		return 0// return 0 for balanced since we have no orders
 	}
 	return (bidVol-askVol)/total
 }
