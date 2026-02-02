@@ -7,6 +7,8 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+
+	//pb "github.com/janscheres/rtre/pb"
 )
 
 type OrderBook struct {
@@ -29,8 +31,9 @@ func (b *OrderBook) handleUpdate(update Answer) {
 		if u.Quantity == 0 {
 			delete(b.Bids, u.Price)
 		} else if u.Quantity > 0 {
+
 			b.Bids[u.Price]=u.Quantity
-			b.TotalBidVol=u.Quantity
+			b.TotalBidVol+=u.Quantity
 		}
 		
 	}
@@ -101,6 +104,8 @@ type Answer struct {
 type WsClient struct {
 	websocket *websocket.Conn
 
+	orderbook OrderBook
+
 	messages chan []byte
 	
 	done chan struct{}
@@ -130,29 +135,41 @@ func (c *WsClient) parseAndPass() {
 			log.Println("ERROR: [JSON] Error parsing json", err)
 		}
 
-		//log.Println(update.Symbol, update.Bids[0])
+		log.Println(update.Symbol, update.Bids[0])
+
+		go c.orderbook.handleUpdate(update)
 	}
 
 }
 
-func main() {
-	var wsclient WsClient
+func (c *WsClient) connect() {
+	c.done = make(chan struct{})
 
-	ws, res, err := websocket.DefaultDialer.Dial("wss://fstream.binance.com/ws/btcusdt@depth@100ms", nil)
+	ws, _, err := websocket.DefaultDialer.Dial("wss://fstream.binance.com/ws/btcusdt@depth@100ms", nil)
 	if err != nil {
 		log.Fatal("[DIAL] Couldn't connect to Binance API:", err)
 	}
-	wsclient.websocket = ws
-	wsclient.messages = make(chan []byte, 100)
-	defer wsclient.websocket.Close()
+	c.websocket = ws
+	
+	c.orderbook = OrderBook{
+		Bids: make(map[float64]float64),	
+		Asks: make(map[float64]float64),
+	}
+	defer c.websocket.Close()
 
-	wsclient.done = make(chan struct{})
+	go c.receive()
+	go c.parseAndPass()
 
-	go wsclient.receive()
+	<-c.done
+}
 
-	go wsclient.parseAndPass()
+func main() {
+	msgs := make(chan []byte, 100)
+	wsclient := WsClient{
+		messages: msgs,
+	}
 
-	<-wsclient.done
-
-	log.Println(ws, res, err)
+	for {
+		wsclient.connect()
+	}
 }
