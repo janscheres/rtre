@@ -36,7 +36,7 @@ func (s *riskServer) StreamRisk(req *pb.RiskRequest, stream pb.RiskService_Strea
 				Obi: obi,
 
             })
-			log.Println("sent obi!:)")
+			//log.Println("sent obi!:)")
             if err != nil {
                 return err
             }
