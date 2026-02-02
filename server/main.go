@@ -68,10 +68,9 @@ func (c *WsClient) receive() {
 
 func (c *WsClient) parseAndPass() {
 	defer close(c.done)
-	for {
-		msg := <- c.messages
-
+	for msg := range c.messages {
 		var update Answer
+
 		err := json.Unmarshal(msg, &update)
 		if err != nil {
 			log.Println("ERROR: [JSON] Error parsing json", err)
