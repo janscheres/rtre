@@ -85,6 +85,9 @@ func (c *WsClient) parseAndPass() {
 }
 
 func (c *WsClient) connect() {
+	c.messages = make(chan []byte, 100)
+	c.done = make(chan struct{})
+
 	ws, _, err := websocket.DefaultDialer.Dial("wss://fstream.binance.com/ws/btcusdt@depth@100ms", nil)
 	if err != nil {
 		log.Fatal("[DIAL] Couldn't connect to Binance API:", err)
@@ -92,8 +95,6 @@ func (c *WsClient) connect() {
 	c.websocket = ws
 	defer c.websocket.Close()
 	
-	c.done = make(chan struct{})
-
 	go c.receive()
 	go c.parseAndPass()
 
