@@ -1,0 +1,15 @@
+syntax = "proto3";
+option go_package = "github.com/janscheres/rtre/pb";
+
+service RiskService {
+  rpc StreamRisk (RiskRequest) returns (stream RiskResponse);
+}
+
+message RiskRequest {
+  string symbol = 1;
+}
+
+message RiskResponse {
+  int64 timestamp = 1;
+  double obi = 2;
+}
