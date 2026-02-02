@@ -3,13 +3,20 @@ package main
 import (
 	"log"
 
-	//pb "github.com/janscheres/rtre/pb"
 )
 
 func main() {
 	wsclient := WsClient{
 		messages: make(chan []byte, 100),
+		orderbook: OrderBook{
+			Bids: make(map[float64]float64),
+			Asks: make(map[float64]float64),
+		},
 	}
+
+	riskService := pb.NewRiskServiceClient()
+
+	go startgRPCServer(&wsclient.orderbook)
 
 	for {
 		wsclient.connect()
