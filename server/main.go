@@ -6,6 +6,8 @@ import (
 )
 
 func main() {
+	log.Println("Initialisng Real-Time Risk Engine")
+
 	wsclient := WsClient{
 		orderbook: OrderBook{
 			Bids: make(map[float64]float64),
