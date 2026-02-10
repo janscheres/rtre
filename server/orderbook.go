@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math"
 	"sync"
 )
 
@@ -21,7 +22,7 @@ type OrderBook struct {
 func (b *OrderBook) handleUpdate(update Answer) {
 	b.mu.Lock()
 
-	var maxBid float64
+	var maxBid float64 = math.Inf(-1)
 	for _, u := range update.Bids {
 		b.TotalBidVol-=b.Bids[u.Price]
 
@@ -38,15 +39,16 @@ func (b *OrderBook) handleUpdate(update Answer) {
 		
 	}
 
-	var maxAsk float64
+	var minAsk float64 = math.Inf(1)
+
 	for _, u := range update.Asks {
 		b.TotalAskVol-=b.Asks[u.Price]
 
 		if u.Quantity == 0 {
 			delete(b.Asks, u.Price)
 		} else if u.Quantity > 0 {
-			if u.Price > maxAsk {
-				maxAsk = u.Price
+			if u.Price < minAsk {
+				minAsk = u.Price
 			}
 
 			b.Asks[u.Price]=u.Quantity
@@ -57,7 +59,7 @@ func (b *OrderBook) handleUpdate(update Answer) {
 	b.mu.Unlock()
 
 	select {
-	case b.SpreadChan <- maxAsk-maxBid:
+	case b.SpreadChan <- minAsk-maxBid:
 	default:
 		log.Println("[go] DROPPING spread due to full channel :(")
 	}

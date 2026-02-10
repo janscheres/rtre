@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -44,64 +46,100 @@ type Answer struct {
 }
 
 type WsClient struct {
-	websocket *websocket.Conn
+	ctx context.Context
 
+	websocket *websocket.Conn
 	orderbook OrderBook
 	symbol string
 
 	messages chan []byte
-	
 	done chan struct{}
+}
+
+func (c *WsClient) run() {
+	for {
+		select {
+		case <-c.ctx.Done():
+			log.Println("[WS] Client disconnected, stopping")
+			return
+		default:
+			err := c.connect()
+			if err != nil {
+				log.Println("[NET] attempting reconnecting to upstream, was disconnected:", err)
+				select {
+				case <-time.After(time.Second):
+				case <-c.ctx.Done():
+					return
+				}
+			}
+		}
+	}
 }
 
 func (c *WsClient) receive() {
 	defer close(c.done)
+	defer close(c.messages)
+
 	for {
 		_, msg, err := c.websocket.ReadMessage()
 		if err != nil {
 			log.Println("ERROR: [RCV]: Error recieving message", err)
-			close(c.messages)
 			return
 		}
 
-		c.messages <- msg
+
+		select {
+		case c.messages <-msg:
+		case <-c.ctx.Done():
+			return
+		}
 	}
 }
 
 func (c *WsClient) parseAndPass() {
-	defer close(c.done)
-	for msg := range c.messages {
-		var update Answer
+	for {
+		select {
+		case msg, ok := <-c.messages:
+			if !ok {
+				return
+			}
 
-		err := json.Unmarshal(msg, &update)
-		if err != nil {
-			log.Println("ERROR: [JSON] Error parsing json", err)
+			var update Answer
+			err := json.Unmarshal(msg, &update)
+			if err != nil {
+				log.Println("ERROR: [JSON] Error parsing json", err)
+			}
+
+			c.orderbook.handleUpdate(update)
+		case <-c.ctx.Done():
+			return
 		}
-
-		//log.Println(update.Symbol, update.Bids[0])
-
-		c.orderbook.handleUpdate(update)
 	}
-
 }
 
-func (c *WsClient) connect(symbol string) {
+func (c *WsClient) connect() error {
 	c.messages = make(chan []byte, 100)
 	c.done = make(chan struct{})
 
-	ws, _, err := websocket.DefaultDialer.Dial("wss://fstream.binance.com/ws/"+symbol+"@depth@100ms", nil)
+	ws, _, err := websocket.DefaultDialer.Dial("wss://fstream.binance.com/ws/"+c.symbol+"@depth@100ms", nil)
 	if err != nil {
-		log.Fatal("[DIAL] Couldn't connect to Binance API:", err)
+		//log.Println("[DIAL] Couldn't connect to Binance API:", err)
+		return err
 	}
 	c.websocket = ws
-	defer c.websocket.Close()
 
 	log.Println("Successfully connected to upstream websocket")
 	
 	go c.receive()
 	go c.parseAndPass()
 
-	<-c.done
+	select {
+	case <-c.done:
+	case <-c.ctx.Done():
+		ws.Close()
+	}
+
+	return nil
 }
 
 

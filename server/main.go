@@ -10,14 +10,7 @@ func main() {
 
 	server := riskServer{}
 
-	//go startgRPCServer(&wsclient.orderbook)
 	go startgRPCServer(&server)
-	for {
+	select {
 	}
-
-	/*for {
-		wsclient.connect()
-
-		log.Println("[NET] Connection died, restarting...")
-	}*/
 }

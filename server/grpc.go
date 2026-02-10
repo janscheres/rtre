@@ -14,67 +14,58 @@ type riskServer struct {
 }
 
 
-func (s *riskServer) NewClient(c *WsClient) {
-	for {
-		(*c).connect(c.symbol)
-
-		log.Println("[NET] Connection died, restarting...")
-	}
-
-}
-
 func (s *riskServer) StreamRisk(req *pb.RiskRequest, stream pb.RiskService_StreamRiskServer) error {
 	ctx := stream.Context()
 
 	log.Println("[gRPC] Connecting to new client")
 
-	wsclient := WsClient{
+	wsclient := &WsClient{
+		ctx: ctx,
+		symbol: req.Symbol,
 		orderbook: OrderBook{
 			Bids: make(map[float64]float64),
 			Asks: make(map[float64]float64),
 			OBIChan: make(chan float64, 100),
 			SpreadChan: make(chan float64, 100),
 		},
-		symbol: req.Symbol,
 	}
 
-	go s.NewClient(&wsclient)
+	go wsclient.run()
+
+	var lastOBI float64
+	var lastSpread float64
 
 	for {
-		var obi float64
-		var spread float64
-
 		select {
 		case <-ctx.Done():
 			log.Println("[gRPC] Connection closed")
 			return nil
-		case o, ok := <-wsclient.orderbook.OBIChan:
-			if !ok {
-				log.Println("OBI channel closed")
-				return nil
+
+		case obi := <-wsclient.orderbook.OBIChan:
+			lastOBI = obi
+			err := stream.Send(&pb.RiskResponse{
+				Timestamp: time.Now().UnixNano(),
+				Obi: lastOBI,
+				Spread: lastSpread,
+
+			})
+
+			if err != nil {
+				return err
 			}
-			obi = o
-		}
 
-		select {
-		case s, ok := <-wsclient.orderbook.SpreadChan:
-			if !ok {
-				log.Println("Spread channel closed")
-				return nil
+		case spread := <-wsclient.orderbook.SpreadChan:
+			lastSpread = spread
+			err := stream.Send(&pb.RiskResponse{
+				Timestamp: time.Now().UnixNano(),
+				Obi: lastOBI,
+				Spread: lastSpread,
+
+			})
+
+			if err != nil {
+				return err
 			}
-			spread = s
-		default:
-		}
-
-		err := stream.Send(&pb.RiskResponse{
-			Timestamp: time.Now().UnixNano(),
-			Obi: obi,
-			Spread: spread,
-
-		})
-		//log.Println("sent obi!:)")
-		if err != nil {
-			return err
 		}
 	}
 }
