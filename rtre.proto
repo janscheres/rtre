@@ -12,4 +12,5 @@ message RiskRequest {
 message RiskResponse {
   int64 timestamp = 1;
   double obi = 2;
+  double spread = 3;
 }

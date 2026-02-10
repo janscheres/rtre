@@ -43,6 +43,7 @@ func (s *riskServer) StreamRisk(req *pb.RiskRequest, stream pb.RiskService_Strea
 				return nil
 			}
 			spread = s
+		default:
 		}
 
 		err := stream.Send(&pb.RiskResponse{
