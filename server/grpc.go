@@ -21,25 +21,39 @@ func (s *riskServer) StreamRisk(req *pb.RiskRequest, stream pb.RiskService_Strea
 	log.Println("[gRPC] Connecting to new client")
 
 	for {
+		var obi float64
+		var spread float64
+
 		select {
 		case <-ctx.Done():
 			log.Println("[gRPC] Connection closed")
 			return nil
-		case obi, ok := <-s.orderBook.OBIChan:
+		case o, ok := <-s.orderBook.OBIChan:
 			if !ok {
 				log.Println("OBI channel closed")
 				return nil
 			}
+			obi = o
+		}
 
-            err := stream.Send(&pb.RiskResponse{
-                Timestamp: time.Now().UnixNano(),
-				Obi: obi,
+		select {
+		case s, ok := <-s.orderBook.SpreadChan:
+			if !ok {
+				log.Println("Spread channel closed")
+				return nil
+			}
+			spread = s
+		}
 
-            })
-			//log.Println("sent obi!:)")
-            if err != nil {
-                return err
-            }
+		err := stream.Send(&pb.RiskResponse{
+			Timestamp: time.Now().UnixNano(),
+			Obi: obi,
+			Spread: spread,
+
+		})
+		//log.Println("sent obi!:)")
+		if err != nil {
+			return err
 		}
 	}
 }

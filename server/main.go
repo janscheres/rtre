@@ -13,6 +13,7 @@ func main() {
 			Bids: make(map[float64]float64),
 			Asks: make(map[float64]float64),
 			OBIChan: make(chan float64, 100),
+			SpreadChan: make(chan float64, 100),
 		},
 	}
 

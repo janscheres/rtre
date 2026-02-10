@@ -69,6 +69,7 @@ type RiskResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timestamp     int64                  `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	Obi           float64                `protobuf:"fixed64,2,opt,name=obi,proto3" json:"obi,omitempty"`
+	Spread        float64                `protobuf:"fixed64,3,opt,name=spread,proto3" json:"spread,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -117,6 +118,13 @@ func (x *RiskResponse) GetObi() float64 {
 	return 0
 }
 
+func (x *RiskResponse) GetSpread() float64 {
+	if x != nil {
+		return x.Spread
+	}
+	return 0
+}
+
 var File_rtre_proto protoreflect.FileDescriptor
 
 const file_rtre_proto_rawDesc = "" +
@@ -124,10 +132,11 @@ const file_rtre_proto_rawDesc = "" +
 	"\n" +
 	"rtre.proto\"%\n" +
 	"\vRiskRequest\x12\x16\n" +
-	"\x06symbol\x18\x01 \x01(\tR\x06symbol\">\n" +
+	"\x06symbol\x18\x01 \x01(\tR\x06symbol\"V\n" +
 	"\fRiskResponse\x12\x1c\n" +
 	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\x12\x10\n" +
-	"\x03obi\x18\x02 \x01(\x01R\x03obi2:\n" +
+	"\x03obi\x18\x02 \x01(\x01R\x03obi\x12\x16\n" +
+	"\x06spread\x18\x03 \x01(\x01R\x06spread2:\n" +
 	"\vRiskService\x12+\n" +
 	"\n" +
 	"StreamRisk\x12\f.RiskRequest\x1a\r.RiskResponse0\x01B\x1fZ\x1dgithub.com/janscheres/rtre/pbb\x06proto3"
