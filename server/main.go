@@ -8,20 +8,16 @@ import (
 func main() {
 	log.Println("Initialisng Real-Time Risk Engine")
 
-	wsclient := WsClient{
-		orderbook: OrderBook{
-			Bids: make(map[float64]float64),
-			Asks: make(map[float64]float64),
-			OBIChan: make(chan float64, 100),
-			SpreadChan: make(chan float64, 100),
-		},
+	server := riskServer{}
+
+	//go startgRPCServer(&wsclient.orderbook)
+	go startgRPCServer(&server)
+	for {
 	}
 
-	go startgRPCServer(&wsclient.orderbook)
-
-	for {
+	/*for {
 		wsclient.connect()
 
 		log.Println("[NET] Connection died, restarting...")
-	}
+	}*/
 }

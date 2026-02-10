@@ -47,6 +47,7 @@ type WsClient struct {
 	websocket *websocket.Conn
 
 	orderbook OrderBook
+	symbol string
 
 	messages chan []byte
 	
@@ -84,11 +85,11 @@ func (c *WsClient) parseAndPass() {
 
 }
 
-func (c *WsClient) connect() {
+func (c *WsClient) connect(symbol string) {
 	c.messages = make(chan []byte, 100)
 	c.done = make(chan struct{})
 
-	ws, _, err := websocket.DefaultDialer.Dial("wss://fstream.binance.com/ws/btcusdt@depth@100ms", nil)
+	ws, _, err := websocket.DefaultDialer.Dial("wss://fstream.binance.com/ws/"+symbol+"@depth@100ms", nil)
 	if err != nil {
 		log.Fatal("[DIAL] Couldn't connect to Binance API:", err)
 	}

@@ -1,24 +1,44 @@
 package main
 
 import (
-	"net"
 	"log"
+	"net"
 	"time"
 
-	"google.golang.org/grpc"
 	pb "github.com/janscheres/rtre/pb"
+	"google.golang.org/grpc"
 )
 
 type riskServer struct {
 	pb.UnimplementedRiskServiceServer
+}
 
-	orderBook *OrderBook
+
+func (s *riskServer) NewClient(c *WsClient) {
+	for {
+		(*c).connect(c.symbol)
+
+		log.Println("[NET] Connection died, restarting...")
+	}
+
 }
 
 func (s *riskServer) StreamRisk(req *pb.RiskRequest, stream pb.RiskService_StreamRiskServer) error {
 	ctx := stream.Context()
 
 	log.Println("[gRPC] Connecting to new client")
+
+	wsclient := WsClient{
+		orderbook: OrderBook{
+			Bids: make(map[float64]float64),
+			Asks: make(map[float64]float64),
+			OBIChan: make(chan float64, 100),
+			SpreadChan: make(chan float64, 100),
+		},
+		symbol: req.Symbol,
+	}
+
+	go s.NewClient(&wsclient)
 
 	for {
 		var obi float64
@@ -28,7 +48,7 @@ func (s *riskServer) StreamRisk(req *pb.RiskRequest, stream pb.RiskService_Strea
 		case <-ctx.Done():
 			log.Println("[gRPC] Connection closed")
 			return nil
-		case o, ok := <-s.orderBook.OBIChan:
+		case o, ok := <-wsclient.orderbook.OBIChan:
 			if !ok {
 				log.Println("OBI channel closed")
 				return nil
@@ -37,7 +57,7 @@ func (s *riskServer) StreamRisk(req *pb.RiskRequest, stream pb.RiskService_Strea
 		}
 
 		select {
-		case s, ok := <-s.orderBook.SpreadChan:
+		case s, ok := <-wsclient.orderbook.SpreadChan:
 			if !ok {
 				log.Println("Spread channel closed")
 				return nil
@@ -59,14 +79,15 @@ func (s *riskServer) StreamRisk(req *pb.RiskRequest, stream pb.RiskService_Strea
 	}
 }
 
-func startgRPCServer(o *OrderBook) {
+func startgRPCServer(s *riskServer) {
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatal("[NET] Failed to start gRPC server", err)
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterRiskServiceServer(grpcServer, &riskServer{orderBook: o})
+	//pb.RegisterRiskServiceServer(grpcServer, &riskServer{orderBook: o})
+	pb.RegisterRiskServiceServer(grpcServer, s)
 
 	log.Println("Ready to start receiving on gRPC :50051")
 
