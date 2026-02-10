@@ -24,18 +24,18 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nrtre.proto\"\x1d\n\x0bRiskRequest\x12\x0e\n\x06symbol\x18\x01 \x01(\t\".\n\x0cRiskResponse\x12\x11\n\ttimestamp\x18\x01 \x01(\x03\x12\x0b\n\x03obi\x18\x02 \x01(\x01\x32:\n\x0bRiskService\x12+\n\nStreamRisk\x12\x0c.RiskRequest\x1a\r.RiskResponse0\x01\x42\x1cZ\x1agithub.com/janscheres/rtreb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nrtre.proto\"\x1d\n\x0bRiskRequest\x12\x0e\n\x06symbol\x18\x01 \x01(\t\">\n\x0cRiskResponse\x12\x11\n\ttimestamp\x18\x01 \x01(\x03\x12\x0b\n\x03obi\x18\x02 \x01(\x01\x12\x0e\n\x06spread\x18\x03 \x01(\x01\x32:\n\x0bRiskService\x12+\n\nStreamRisk\x12\x0c.RiskRequest\x1a\r.RiskResponse0\x01\x42\x1fZ\x1dgithub.com/janscheres/rtre/pbb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'rtre_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z\032github.com/janscheres/rtre'
+  _globals['DESCRIPTOR']._serialized_options = b'Z\035github.com/janscheres/rtre/pb'
   _globals['_RISKREQUEST']._serialized_start=14
   _globals['_RISKREQUEST']._serialized_end=43
   _globals['_RISKRESPONSE']._serialized_start=45
-  _globals['_RISKRESPONSE']._serialized_end=91
-  _globals['_RISKSERVICE']._serialized_start=93
-  _globals['_RISKSERVICE']._serialized_end=151
+  _globals['_RISKRESPONSE']._serialized_end=107
+  _globals['_RISKSERVICE']._serialized_start=109
+  _globals['_RISKSERVICE']._serialized_end=167
 # @@protoc_insertion_point(module_scope)

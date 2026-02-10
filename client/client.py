@@ -24,6 +24,7 @@ def main():
             mean = obiSum/numObi
 
             print("Received:", response.timestamp, response.obi, mean)
+            print("SPREAD", response.spread)
 
     except grpc.RpcError as e:
         print("gRPC error:", e)
